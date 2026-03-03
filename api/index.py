@@ -12,7 +12,7 @@ TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
 @app.route("/", methods=["GET"])
 def home():
-    return "Bot Running 24/7", 200
+    return "NEW VERSION ACTIVE", 200
 
 
 @app.route("/", methods=["POST"])
