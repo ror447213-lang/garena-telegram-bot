@@ -4,7 +4,7 @@ from telegram import Bot, Update
 
 app = Flask(__name__)
 
-BOT_TOKEN = "PASTE_NEW_TOKEN_HERE"
+BOT_TOKEN = "8707631665:AAF_wbQXcwWfCSz6ySTwbcxizzSQEMnZoC8"
 API_BASE = "https://email-checke38.vercel.app"
 
 bot = Bot(BOT_TOKEN)
