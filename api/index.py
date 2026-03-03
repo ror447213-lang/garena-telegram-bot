@@ -1,5 +1,5 @@
 import requests
-from flask import Flask, request, jsonify
+from flask import Flask, request
 
 app = Flask(__name__)
 
@@ -28,10 +28,15 @@ def webhook():
         text = message.get("text", "")
 
         if text.startswith("/start"):
-            send(chat_id, "🤖 Bot Active\n\nUse:\n/bind ACCESS_TOKEN\n/health")
+            send(chat_id,
+                 "🤖 *Garena Bind Info Bot*\n\n"
+                 "Use commands:\n"
+                 "• /bind ACCESS_TOKEN\n"
+                 "• /health",
+                 markdown=True)
 
         elif text.startswith("/health"):
-            send(chat_id, "🟢 Server Running")
+            send(chat_id, "🟢 Server Running 24/7")
 
         elif text.startswith("/bind"):
             parts = text.split(" ")
@@ -40,11 +45,35 @@ def webhook():
                 send(chat_id, "Usage:\n/bind ACCESS_TOKEN")
             else:
                 token = parts[1]
+
                 try:
-                    r = requests.get(f"{API_BASE}/bind_info?access_token={token}", timeout=20)
-                    send(chat_id, str(r.json()))
+                    r = requests.get(
+                        f"{API_BASE}/bind_info?access_token={token}",
+                        timeout=20
+                    )
+                    data = r.json()
+
+                    if data.get("status") == "success":
+                        current = data["data"].get("current_email") or "None"
+                        pending = data["data"].get("pending_email") or "None"
+                        summary = data.get("summary", "No summary")
+
+                        status_text = "Confirmed" if current != "None" else "Not Set"
+
+                        reply = (
+                            f"📧 *Current Email*\n{current}\n\n"
+                            f"⏳ *Pending Email*\n{pending}\n\n"
+                            f"✅ *Status*\n{status_text}\n\n"
+                            f"📝 *Summary*\n{summary}"
+                        )
+
+                        send(chat_id, reply, markdown=True)
+
+                    else:
+                        send(chat_id, "❌ Failed to fetch data")
+
                 except Exception as e:
-                    send(chat_id, f"Error: {str(e)}")
+                    send(chat_id, f"❌ Error:\n{str(e)}")
 
         return "ok"
 
@@ -52,8 +81,13 @@ def webhook():
         return str(e), 500
 
 
-def send(chat_id, text):
-    requests.post(TELEGRAM_API, json={
+def send(chat_id, text, markdown=False):
+    payload = {
         "chat_id": chat_id,
         "text": text
-    })
+    }
+
+    if markdown:
+        payload["parse_mode"] = "Markdown"
+
+    requests.post(TELEGRAM_API, json=payload)
